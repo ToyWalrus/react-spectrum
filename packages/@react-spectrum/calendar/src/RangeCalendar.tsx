@@ -28,10 +28,10 @@ function RangeCalendar<T extends DateValue>(props: SpectrumRangeCalendarProps<T>
   let visibleDuration = useMemo(() => ({months: visibleMonths}), [visibleMonths]);
   let {locale} = useLocale();
   let state = useRangeCalendarState({
+    createCalendar,
     ...props,
     locale,
-    visibleDuration,
-    createCalendar
+    visibleDuration
   });
 
   let domRef = useRef(null);

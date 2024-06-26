@@ -49,7 +49,14 @@ export interface CalendarProps<T extends DateValue> extends Omit<BaseCalendarPro
    * The amount of days that will be displayed at once. This affects how pagination works.
    * @default {months: 1}
    */
-  visibleDuration?: DateDuration
+  visibleDuration?: DateDuration,
+
+  /**
+   * A function to create a new [Calendar](https://react-spectrum.adobe.com/internationalized/date/Calendar.html)
+   * object for a given calendar identifier. If not provided, the {@link createCalendar} function
+   * from `@internationalized/date` will be used.
+   */
+  createCalendar?: typeof createCalendar
 }
 
 export interface RangeCalendarProps<T extends DateValue> extends Omit<BaseRangeCalendarProps<T>, 'errorMessage' | 'validationState'>, RenderProps<RangeCalendarRenderProps>, SlotProps {
@@ -57,7 +64,14 @@ export interface RangeCalendarProps<T extends DateValue> extends Omit<BaseRangeC
    * The amount of days that will be displayed at once. This affects how pagination works.
    * @default {months: 1}
    */
-  visibleDuration?: DateDuration
+  visibleDuration?: DateDuration,
+
+  /**
+   * A function to create a new [Calendar](https://react-spectrum.adobe.com/internationalized/date/Calendar.html)
+   * object for a given calendar identifier. If not provided, the {@link createCalendar} function
+   * from `@internationalized/date` will be used.
+   */
+    createCalendar?: typeof createCalendar
 }
 
 export const CalendarContext = createContext<ContextValue<CalendarProps<any>, HTMLDivElement>>({});
@@ -69,9 +83,9 @@ function Calendar<T extends DateValue>(props: CalendarProps<T>, ref: ForwardedRe
   [props, ref] = useContextProps(props, ref, CalendarContext);
   let {locale} = useLocale();
   let state = useCalendarState({
+    createCalendar,
     ...props,
-    locale,
-    createCalendar
+    locale
   });
 
   let {calendarProps, prevButtonProps, nextButtonProps, errorMessageProps, title} = useCalendar(props, state);
@@ -144,9 +158,9 @@ function RangeCalendar<T extends DateValue>(props: RangeCalendarProps<T>, ref: F
   [props, ref] = useContextProps(props, ref, RangeCalendarContext);
   let {locale} = useLocale();
   let state = useRangeCalendarState({
+    createCalendar,
     ...props,
-    locale,
-    createCalendar
+    locale
   });
 
   let {calendarProps, prevButtonProps, nextButtonProps, errorMessageProps, title} = useRangeCalendar(
