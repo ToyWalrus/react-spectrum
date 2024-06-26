@@ -19,7 +19,6 @@ import {
   endOfMonth,
   endOfWeek,
   getDayOfWeek,
-  GregorianCalendar,
   isSameDay,
   startOfMonth,
   startOfWeek,
@@ -149,8 +148,8 @@ export function useCalendarState<T extends DateValue = DateValue>(props: Calenda
       }
 
       // The display calendar should not have any effect on the emitted value.
-      // Emit dates in the same calendar as the original value, if any, otherwise gregorian.
-      localValue = toCalendar(localValue, value?.calendar || new GregorianCalendar());
+      // Emit dates in the same calendar as the original value, if any, otherwise the current calendar.
+      localValue = toCalendar(localValue, value?.calendar || calendar);
 
       // Preserve time if the input value had one.
       if (value && 'hour' in value) {
@@ -198,6 +197,7 @@ export function useCalendarState<T extends DateValue = DateValue>(props: Calenda
     timeZone,
     validationState,
     isValueInvalid,
+    calendar,
     setFocusedDate(date) {
       focusCell(date);
       setFocused(true);

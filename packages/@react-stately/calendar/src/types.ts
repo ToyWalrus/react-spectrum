@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import {CalendarDate} from '@internationalized/date';
+import {Calendar, CalendarDate} from '@internationalized/date';
 import {DateValue} from '@react-types/calendar';
 import {RangeValue, ValidationState} from '@react-types/shared';
 
@@ -36,6 +36,8 @@ interface CalendarStateBase {
   readonly isValueInvalid: boolean,
   /** The currently focused date. */
   readonly focusedDate: CalendarDate,
+  /** The Calendar returned from the `createCalendar()` function. */
+  readonly calendar: Calendar,
   /** Sets the focused date. */
   setFocusedDate(value: CalendarDate): void,
   /** Moves focus to the next calendar date. */

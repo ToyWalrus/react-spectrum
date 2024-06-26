@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import {CalendarDate, startOfWeek, today} from '@internationalized/date';
+import {CalendarDate, startOfWeek, toCalendar, today} from '@internationalized/date';
 import {CalendarState, RangeCalendarState} from '@react-stately/calendar';
 import {DOMAttributes} from '@react-types/shared';
 import {hookData, useVisibleRangeDescription} from './utils';
@@ -137,13 +137,13 @@ export function useCalendarGrid(props: AriaCalendarGridProps, state: CalendarSta
   let dayFormatter = useDateFormatter({weekday: props.weekdayStyle || 'narrow', timeZone: state.timeZone});
   let {locale} = useLocale();
   let weekDays = useMemo(() => {
-    let weekStart = startOfWeek(today(state.timeZone), locale);
+    let weekStart = startOfWeek(toCalendar(today(state.timeZone), state.calendar), locale);
     return [...new Array(7).keys()].map((index) => {
       let date = weekStart.add({days: index});
       let dateDay = date.toDate(state.timeZone);
       return dayFormatter.format(dateDay);
     });
-  }, [locale, state.timeZone, dayFormatter]);
+  }, [locale, state.timeZone, state.calendar, dayFormatter]);
 
   return {
     gridProps: mergeProps(labelProps, {
