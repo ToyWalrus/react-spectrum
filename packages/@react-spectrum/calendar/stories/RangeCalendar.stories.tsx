@@ -11,7 +11,8 @@
  */
 
 import {action} from '@storybook/addon-actions';
-import {CalendarDate, CalendarDateTime, getLocalTimeZone, isWeekend, parseZonedDateTime, today} from '@internationalized/date';
+import {AnyCalendarDate, Calendar, CalendarDate, CalendarDateTime, createCalendar, getLocalTimeZone, isWeekend, parseDate, parseZonedDateTime, today} from '@internationalized/date';
+import {compareDate} from '@internationalized/date/src/queries';
 import {ComponentMeta, ComponentStoryObj} from '@storybook/react';
 import {DateValue} from '@react-types/calendar';
 import {Flex} from '@react-spectrum/layout';
@@ -106,6 +107,16 @@ export const ZonedTime: RangeCalendarStory = {
   name: 'with zoned time'
 };
 
+export const Custom454: RangeCalendarStory = {
+  ...Default,
+  args: {
+    createCalendar: createCustomCalendar,
+    defaultValue: {start: new CalendarDate(2015, 2, 10), end: new CalendarDate(2015, 4, 28)}, 
+    visibleMonths: 3
+  },
+  name: 'custom calendar: 4-5-4 week layout'
+};
+
 export const OneWeek: RangeCalendarStory = {
   ...Default,
   args: {minValue: today(getLocalTimeZone()), maxValue: today(getLocalTimeZone()).add({weeks: 1})},
@@ -193,4 +204,94 @@ function DateUnavailableAndInvalid(props) {
   return (
     render({...props, isDateUnavailable: (date: DateValue) => isWeekend(date, locale), allowsNonContiguousRanges: true, defaultValue: {start: new CalendarDate(2021, 10, 3), end: new CalendarDate(2021, 10, 16)}})
   );
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function createCustomCalendar(_: string):Calendar {
+  return new Custom454Cal();
+}
+
+class Custom454Cal implements Calendar {
+  private internalCal: Calendar;
+  identifier: string;
+
+  private cal454_2015 = [
+    {'start': '2015-02-01', 'end': '2015-02-28', 'weeks': 4},
+    {'start': '2015-03-01', 'end': '2015-04-04', 'weeks': 5},
+    {'start': '2015-04-05', 'end': '2015-05-02', 'weeks': 4},
+
+    {'start': '2015-05-03', 'end': '2015-05-30', 'weeks': 4},
+    {'start': '2015-05-31', 'end': '2015-07-04', 'weeks': 5},
+    {'start': '2015-07-05', 'end': '2015-08-01', 'weeks': 4},
+
+    {'start': '2015-08-02', 'end': '2015-08-29', 'weeks': 4},
+    {'start': '2015-08-30', 'end': '2015-10-03', 'weeks': 5},
+    {'start': '2015-10-04', 'end': '2015-10-31', 'weeks': 4},
+
+    {'start': '2015-11-01', 'end': '2015-11-28', 'weeks': 4},
+    {'start': '2015-11-29', 'end': '2016-01-02', 'weeks': 5},
+    {'start': '2016-01-03', 'end': '2016-01-30', 'weeks': 4}
+  ] as const;
+
+  constructor() {
+    this.internalCal = createCalendar('gregory');
+    this.identifier = 'custom-454';
+  }
+  fromJulianDay(jd: number): CalendarDate {
+    const date = this.internalCal.fromJulianDay(jd + 5);
+    return new CalendarDate(this, date.year, date.month, date.day);
+  }
+  toJulianDay(date: AnyCalendarDate): number {
+    return this.internalCal.toJulianDay(date);
+  }
+  getFirstDayOfWeek(): number {
+    return 0;
+  }
+  getStartOfMonth(date: DateValue): DateValue {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToStart = compareDate(date, parseDate(range.start));
+      return date.subtract({days: diffToStart});
+    }
+  }
+  getEndOfMonth(date: DateValue): DateValue {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToEnd = compareDate(date, parseDate(range.end));
+      return date.add({days: 1 - diffToEnd});
+    }
+  }
+  getStartOfYear(date: DateValue): DateValue {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToStart = compareDate(date, parseDate(this.cal454_2015[0].start));
+      return date.subtract({days: diffToStart});
+    }
+  }
+  getEndOfYear(date: DateValue): DateValue {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToEnd = compareDate(date, parseDate(this.cal454_2015[this.cal454_2015.length - 1].end));
+      return date.add({days: 1 - diffToEnd});
+    }
+  }
+  getDaysInMonth(date: AnyCalendarDate): number {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      return range.weeks * 7;
+    }
+    return this.internalCal.getDaysInMonth(date);
+  }
+  
+  getMonthsInYear(date: AnyCalendarDate): number {
+    return this.internalCal.getMonthsInYear(date);
+  }
+  getYearsInEra(date: AnyCalendarDate): number {
+    return this.internalCal.getYearsInEra(date);
+  }
+  getEras(): string[] {
+    return this.internalCal.getEras();
+  }
+  private getRangeOfDate(date: AnyCalendarDate) {
+    return this.cal454_2015.find(r => compareDate(date, parseDate(r.start)) >= 0 && compareDate(date, parseDate(r.end)) <= 0);
+  }
 }

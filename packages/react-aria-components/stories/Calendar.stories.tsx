@@ -10,10 +10,10 @@
  * governing permissions and limitations under the License.
  */
 
-import {AnyCalendarDate, CalendarDate, Calendar as CalendarType, createCalendar, parseDate} from '@internationalized/date';
+import {AnyCalendarDate, CalendarDate, CalendarDateTime, Calendar as CalendarType, createCalendar, parseDate, ZonedDateTime} from '@internationalized/date';
 import {Button, Calendar, CalendarCell, CalendarGrid, CalendarStateContext, Heading, RangeCalendar} from 'react-aria-components';
 import {compareDate} from '@internationalized/date/src/queries';
-import React, {useContext} from 'react';
+import React, {CSSProperties, useContext} from 'react';
 
 export default {
   title: 'React Aria Components'
@@ -96,31 +96,38 @@ export const RangeCalendarExample = () => (
   </RangeCalendar>
 );
 
-export const CustomRangeCalendarExample = () =>   (
-  <RangeCalendar
-    style={{width: 220}}
-    createCalendar={createCustomCalendar}
-    defaultFocusedValue={new CalendarDate(new Custom454Cal(), 2015, 2, 10)}>
-    <div style={{display: 'flex', alignItems: 'center'}}>
-      <Button slot="previous">&lt;</Button>
-      <Heading style={{flex: 1, textAlign: 'center'}} />
-      <Button slot="next">&gt;</Button>
-    </div>
-    <CalendarGrid style={{width: '100%'}}>
-      {date => (<CalendarCell
-        date={date}
-        style={({isSelected, isOutsideMonth}) => ({
-          // display: isOutsideMonth ? 'none' : '', 
-          textAlign: 'center', 
-          cursor: !isOutsideMonth ? 'pointer' : 'default', 
-          // eslint-disable-next-line no-nested-ternary
-          // background: isOutsideMonth ? 'gray' : (isSelected ? 'blue' : ''),
-          color: isSelected ? 'white' : 'black'
-        })} />
-      )}
-    </CalendarGrid>
-  </RangeCalendar>
-);
+export const CustomRangeCalendarExample = () => {
+  const getCellStyle = ({isSelected, isOutsideMonth}): CSSProperties => ({
+    textAlign: 'center', 
+    cursor: !isOutsideMonth ? 'pointer' : 'default', 
+    // eslint-disable-next-line no-nested-ternary
+    background: isOutsideMonth ? 'gray' : (isSelected ? 'blue' : ''),
+    color: isSelected ? 'white' : 'black'
+  });
+
+  return (
+    <RangeCalendar
+      style={{width: 750}}
+      visibleDuration={{months: 3}}
+      createCalendar={createCustomCalendar}
+      defaultValue={{start: new CalendarDate(2015, 3, 5), end: new CalendarDate(2015, 4, 1)}}>
+      <div style={{display: 'flex', alignItems: 'center'}}>
+        <Button slot="previous">&lt;</Button>
+        <Heading style={{flex: 1, textAlign: 'center'}} />
+        <Button slot="next">&gt;</Button>
+      </div>
+      <div style={{display: 'flex', gap: 20}}>
+        {
+          [0, 1, 2].map((offset) => (
+            <CalendarGrid key={offset} style={{flex: 1}} offset={{months: offset}}>
+              {date => (<CalendarCell date={date} style={getCellStyle} />)}
+            </CalendarGrid>
+          ))
+        }
+      </div>
+    </RangeCalendar>
+  );
+};
 
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -128,6 +135,7 @@ function createCustomCalendar(_: string):CalendarType {
   return new Custom454Cal();
 }
 
+type DateValue = CalendarDate | ZonedDateTime | CalendarDateTime;
 class Custom454Cal implements CalendarType {
   private internalCal: CalendarType;
   identifier: string;
@@ -161,13 +169,45 @@ class Custom454Cal implements CalendarType {
   toJulianDay(date: AnyCalendarDate): number {
     return this.internalCal.toJulianDay(date);
   }
+  getFirstDayOfWeek(): number {
+    return 0;
+  }
+  getStartOfMonth(date: DateValue): DateValue {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToStart = compareDate(date, parseDate(range.start));
+      return date.subtract({days: diffToStart});
+    }
+  }
+  getEndOfMonth(date: DateValue): DateValue {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToEnd = compareDate(date, parseDate(range.end));
+      return date.add({days: 1 - diffToEnd});
+    }
+  }
+  getStartOfYear(date: DateValue): DateValue {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToStart = compareDate(date, parseDate(this.cal454_2015[0].start));
+      return date.subtract({days: diffToStart});
+    }
+  }
+  getEndOfYear(date: DateValue): DateValue {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToEnd = compareDate(date, parseDate(this.cal454_2015[this.cal454_2015.length - 1].end));
+      return date.add({days: 1 - diffToEnd});
+    }
+  }
   getDaysInMonth(date: AnyCalendarDate): number {
-    const range = this.cal454_2015.find(r => compareDate(date, parseDate(r.start)) >= 0 && compareDate(date, parseDate(r.end)) <= 0);
+    const range = this.getRangeOfDate(date);
     if (range) {
       return range.weeks * 7;
     }
     return this.internalCal.getDaysInMonth(date);
   }
+  
   getMonthsInYear(date: AnyCalendarDate): number {
     return this.internalCal.getMonthsInYear(date);
   }
@@ -177,27 +217,7 @@ class Custom454Cal implements CalendarType {
   getEras(): string[] {
     return this.internalCal.getEras();
   }
-  getMinimumDayInMonth(date: AnyCalendarDate): number {
-    const range = this.cal454_2015.find(r => compareDate(date, parseDate(r.start)) >= 0 && compareDate(date, parseDate(r.end)) <= 0);
-    if (range) {
-      const val = parseDate(range.start).day;
-      console.log(`getMinimumDayInMonth ${date.month} -`, val);
-      return val;
-    }
-    return 1;
+  private getRangeOfDate(date: AnyCalendarDate) {
+    return this.cal454_2015.find(r => compareDate(date, parseDate(r.start)) >= 0 && compareDate(date, parseDate(r.end)) <= 0);
   }
 }
-
-// export const Custom445Calendar: RangeCalendarStory = {
-//   ...Default,
-//   args: {
-//     visibleMonths: 3, 
-//     createCalendar: createCustomCalendar, 
-//     defaultValue: {
-//       start: new CalendarDate(new Custom454Cal(), 2015, 2, 10), 
-//       end: new CalendarDate(new Custom454Cal(), 2015, 4, 15)
-//     },
-//     pageBehavior: 'visible'
-//   },
-//   name: 'custom calendar: 4-4-5 week layout'
-// };
