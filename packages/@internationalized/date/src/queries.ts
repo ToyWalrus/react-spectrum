@@ -61,7 +61,7 @@ export function isEqualYear(a: DateValue, b: DateValue): boolean {
 
 /** Returns whether the date is today in the given time zone. */
 export function isToday(date: DateValue, timeZone: string): boolean {
-  return isSameDay(date, today(timeZone));
+  return isSameDay(date, toCalendar(today(timeZone), date.calendar));
 }
 
 /**
@@ -71,10 +71,11 @@ export function isToday(date: DateValue, timeZone: string): boolean {
  */
 export function getDayOfWeek(date: DateValue, locale: string): number {
   let julian = date.calendar.toJulianDay(date);
+  let startOfWeek = date.calendar.getFirstDayOfWeek?.() ?? getWeekStart(locale);
 
   // If julian is negative, then julian % 7 will be negative, so we adjust
   // accordingly.  Julian day 0 is Monday.
-  let dayOfWeek = Math.ceil(julian + 1 - getWeekStart(locale)) % 7;
+  let dayOfWeek = Math.ceil(julian + 1 - startOfWeek) % 7;
   if (dayOfWeek < 0) {
     dayOfWeek += 7;
   }
@@ -134,7 +135,7 @@ export function startOfMonth(date: CalendarDate): CalendarDate;
 export function startOfMonth(date: DateValue): DateValue;
 export function startOfMonth(date: DateValue): DateValue {
   // Use `subtract` instead of `set` so we don't get constrained in an era.
-  return date.subtract({days: date.day - 1});
+  return date.calendar.getStartOfMonth?.(date) || date.subtract({days: date.day - 1});
 }
 
 /** Returns the last date of the month for the given date. */
@@ -143,7 +144,7 @@ export function endOfMonth(date: CalendarDateTime): CalendarDateTime;
 export function endOfMonth(date: CalendarDate): CalendarDate;
 export function endOfMonth(date: DateValue): DateValue;
 export function endOfMonth(date: DateValue): DateValue {
-  return date.add({days: date.calendar.getDaysInMonth(date) - date.day});
+  return date.calendar.getEndOfMonth?.(date) || date.add({days: date.calendar.getDaysInMonth(date) - date.day});
 }
 
 /** Returns the first day of the year for the given date. */
@@ -152,7 +153,7 @@ export function startOfYear(date: CalendarDateTime): CalendarDateTime;
 export function startOfYear(date: CalendarDate): CalendarDate;
 export function startOfYear(date: DateValue): DateValue;
 export function startOfYear(date: DateValue): DateValue {
-  return startOfMonth(date.subtract({months: date.month - 1}));
+  return date.calendar.getStartOfYear?.(date) || startOfMonth(date.subtract({months: date.month - 1}));
 }
 
 /** Returns the last day of the year for the given date. */
@@ -161,7 +162,7 @@ export function endOfYear(date: CalendarDateTime): CalendarDateTime;
 export function endOfYear(date: CalendarDate): CalendarDate;
 export function endOfYear(date: DateValue): DateValue;
 export function endOfYear(date: DateValue): DateValue {
-  return endOfMonth(date.add({months: date.calendar.getMonthsInYear(date) - date.month}));
+  return date.calendar.getEndOfYear?.(date) || endOfMonth(date.add({months: date.calendar.getMonthsInYear(date) - date.month}));
 }
 
 export function getMinimumMonthInYear(date: AnyCalendarDate) {

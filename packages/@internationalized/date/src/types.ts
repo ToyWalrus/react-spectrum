@@ -10,7 +10,9 @@
  * governing permissions and limitations under the License.
  */
 
-import {CalendarDate} from './CalendarDate';
+import {CalendarDate, CalendarDateTime, ZonedDateTime} from './CalendarDate';
+
+type DateValue = CalendarDate | CalendarDateTime | ZonedDateTime;
 
 /** An interface that is compatible with any object with date fields. */
 export interface AnyCalendarDate {
@@ -57,6 +59,49 @@ export interface Calendar {
   /** Returns a list of era identifiers for the calendar. */
   getEras(): string[],
 
+  /**
+   * Returns the index of the day of the week that should be considered
+   * the first day of the calendar week. Indices are 0-based, with 0 being
+   * Sunday, 1 being Monday, and so on.
+   * 
+   * If this method is not implemented, the first day of the week is determined
+   * based on locale, unrelated to the calendar.
+   */
+  getFirstDayOfWeek?(): number,
+  /**
+   * Returns the start of the month of the given date.
+   * 
+   * If this method is not implemented, the start of the month is considered
+   * to be the first day of the month. This method is useful for calendars
+   * where the start of the month is not always the same day number.
+   */
+  getStartOfMonth?(date: DateValue): DateValue,
+  /**
+   * Returns the end of the month of the given date.
+   * 
+   * If this method is not implemented, the end of the month is considered
+   * to be the last day of the month. This method is useful for calendars
+   * where the end of the month is not always the same day number.
+   */
+  getEndOfMonth?(date: DateValue): DateValue,
+  /**
+   * Returns the start of the year of the given date.
+   * 
+   * If this method is not implemented, the start of the year is considered
+   * to be the first day of the year. This method is useful for calendars
+   * where the start of the year is not always the same month and day.
+   */
+  getStartOfYear?(date: DateValue): DateValue,
+  /**
+   * Returns the end of the year of the given date.
+   * 
+   * If this method is not implemented, the end of the year is considered
+   * to be the last day of the year. This method is useful for calendars
+   * where the end of the year is not always the same month and day.
+   */
+  getEndOfYear?(date: DateValue): DateValue,
+
+  
   /**
    * Returns the minimum month number of the given date's year.
    * Normally, this is 1, but in some calendars such as the Japanese,
