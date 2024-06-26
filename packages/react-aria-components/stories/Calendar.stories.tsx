@@ -10,7 +10,9 @@
  * governing permissions and limitations under the License.
  */
 
+import {AnyCalendarDate, CalendarDate, Calendar as CalendarType, createCalendar, parseDate} from '@internationalized/date';
 import {Button, Calendar, CalendarCell, CalendarGrid, CalendarStateContext, Heading, RangeCalendar} from 'react-aria-components';
+import {compareDate} from '@internationalized/date/src/queries';
 import React, {useContext} from 'react';
 
 export default {
@@ -93,3 +95,109 @@ export const RangeCalendarExample = () => (
     </CalendarGrid>
   </RangeCalendar>
 );
+
+export const CustomRangeCalendarExample = () =>   (
+  <RangeCalendar
+    style={{width: 220}}
+    createCalendar={createCustomCalendar}
+    defaultFocusedValue={new CalendarDate(new Custom454Cal(), 2015, 2, 10)}>
+    <div style={{display: 'flex', alignItems: 'center'}}>
+      <Button slot="previous">&lt;</Button>
+      <Heading style={{flex: 1, textAlign: 'center'}} />
+      <Button slot="next">&gt;</Button>
+    </div>
+    <CalendarGrid style={{width: '100%'}}>
+      {date => (<CalendarCell
+        date={date}
+        style={({isSelected, isOutsideMonth}) => ({
+          // display: isOutsideMonth ? 'none' : '', 
+          textAlign: 'center', 
+          cursor: !isOutsideMonth ? 'pointer' : 'default', 
+          // eslint-disable-next-line no-nested-ternary
+          // background: isOutsideMonth ? 'gray' : (isSelected ? 'blue' : ''),
+          color: isSelected ? 'white' : 'black'
+        })} />
+      )}
+    </CalendarGrid>
+  </RangeCalendar>
+);
+
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function createCustomCalendar(_: string):CalendarType {
+  return new Custom454Cal();
+}
+
+class Custom454Cal implements CalendarType {
+  private internalCal: CalendarType;
+  identifier: string;
+
+  private cal454_2015 = [
+    {'start': '2015-02-01', 'end': '2015-02-28', 'weeks': 4},
+    {'start': '2015-03-01', 'end': '2015-04-04', 'weeks': 5},
+    {'start': '2015-04-05', 'end': '2015-05-02', 'weeks': 4},
+
+    {'start': '2015-05-03', 'end': '2015-05-30', 'weeks': 4},
+    {'start': '2015-05-31', 'end': '2015-07-04', 'weeks': 5},
+    {'start': '2015-07-05', 'end': '2015-08-01', 'weeks': 4},
+
+    {'start': '2015-08-02', 'end': '2015-08-29', 'weeks': 4},
+    {'start': '2015-08-30', 'end': '2015-10-03', 'weeks': 5},
+    {'start': '2015-10-04', 'end': '2015-10-31', 'weeks': 4},
+
+    {'start': '2015-11-01', 'end': '2015-11-28', 'weeks': 4},
+    {'start': '2015-11-29', 'end': '2016-01-02', 'weeks': 5},
+    {'start': '2016-01-03', 'end': '2016-01-30', 'weeks': 4}
+  ] as const;
+
+  constructor() {
+    this.internalCal = createCalendar('gregory');
+    this.identifier = 'custom-454';
+  }
+  fromJulianDay(jd: number): CalendarDate {
+    const date = this.internalCal.fromJulianDay(jd + 5);
+    return new CalendarDate(this, date.year, date.month, date.day);
+  }
+  toJulianDay(date: AnyCalendarDate): number {
+    return this.internalCal.toJulianDay(date);
+  }
+  getDaysInMonth(date: AnyCalendarDate): number {
+    const range = this.cal454_2015.find(r => compareDate(date, parseDate(r.start)) >= 0 && compareDate(date, parseDate(r.end)) <= 0);
+    if (range) {
+      return range.weeks * 7;
+    }
+    return this.internalCal.getDaysInMonth(date);
+  }
+  getMonthsInYear(date: AnyCalendarDate): number {
+    return this.internalCal.getMonthsInYear(date);
+  }
+  getYearsInEra(date: AnyCalendarDate): number {
+    return this.internalCal.getYearsInEra(date);
+  }
+  getEras(): string[] {
+    return this.internalCal.getEras();
+  }
+  getMinimumDayInMonth(date: AnyCalendarDate): number {
+    const range = this.cal454_2015.find(r => compareDate(date, parseDate(r.start)) >= 0 && compareDate(date, parseDate(r.end)) <= 0);
+    if (range) {
+      const val = parseDate(range.start).day;
+      console.log(`getMinimumDayInMonth ${date.month} -`, val);
+      return val;
+    }
+    return 1;
+  }
+}
+
+// export const Custom445Calendar: RangeCalendarStory = {
+//   ...Default,
+//   args: {
+//     visibleMonths: 3, 
+//     createCalendar: createCustomCalendar, 
+//     defaultValue: {
+//       start: new CalendarDate(new Custom454Cal(), 2015, 2, 10), 
+//       end: new CalendarDate(new Custom454Cal(), 2015, 4, 15)
+//     },
+//     pageBehavior: 'visible'
+//   },
+//   name: 'custom calendar: 4-4-5 week layout'
+// };
