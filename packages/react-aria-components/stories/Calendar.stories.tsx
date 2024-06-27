@@ -102,7 +102,9 @@ export const CustomRangeCalendarExample = () => {
     cursor: !isOutsideMonth ? 'pointer' : 'default', 
     // eslint-disable-next-line no-nested-ternary
     background: isOutsideMonth ? 'gray' : (isSelected ? 'blue' : ''),
-    color: isSelected ? 'white' : 'black'
+    color: isSelected ? 'white' : 'black',
+    height: 32,
+    width: 32
   });
 
   return (
@@ -116,10 +118,13 @@ export const CustomRangeCalendarExample = () => {
         <Heading style={{flex: 1, textAlign: 'center'}} />
         <Button slot="next">&gt;</Button>
       </div>
-      <div style={{display: 'flex', gap: 20}}>
+      <div style={{display: 'grid', alignItems: 'start', gridAutoColumns: '1fr', gridAutoFlow: 'column', gap: 24}}>
         {
           [0, 1, 2].map((offset) => (
-            <CalendarGrid key={offset} style={{flex: 1}} offset={{months: offset}}>
+            <CalendarGrid
+              key={offset}
+              style={{borderCollapse: 'collapse', borderSpacing: 0}}
+              offset={{months: offset}}>
               {date => (<CalendarCell date={date} style={getCellStyle} />)}
             </CalendarGrid>
           ))

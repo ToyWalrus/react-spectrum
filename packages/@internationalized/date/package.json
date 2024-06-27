@@ -22,6 +22,7 @@
     "url": "https://github.com/adobe/react-spectrum/tree/main/packages/@internationalized/date"
   },
   "dependencies": {
+    "@react-spectrum/calendar": "^3.4.9",
     "@swc/helpers": "^0.5.0"
   },
   "publishConfig": {

@@ -210,7 +210,7 @@ function createCustomCalendar(_: string):Calendar {
   return new Custom454Cal();
 }
 
-class Custom454Cal implements Calendar {
+export class Custom454Cal implements Calendar {
   private internalCal: Calendar;
   identifier: string;
 
@@ -280,6 +280,17 @@ class Custom454Cal implements Calendar {
       return range.weeks * 7;
     }
     return this.internalCal.getDaysInMonth(date);
+  }
+  balanceDate1(date) {
+    if (date.month === 2) {
+      // return new CalendarDate(this, 2015, 2, 1);
+      date.day = 1;
+      date.month = 3;
+    } else if (date.month === 3) {
+      // return new CalendarDate(this, 2015, 3, 1);
+      date.day = 5;
+      date.month = 4;
+    }
   }
   
   getMonthsInYear(date: AnyCalendarDate): number {

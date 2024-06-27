@@ -10,7 +10,9 @@
  * governing permissions and limitations under the License.
  */
 
-import {BuddhistCalendar, CalendarDate, CalendarDateTime, CopticCalendar, EthiopicAmeteAlemCalendar, EthiopicCalendar, HebrewCalendar, IndianCalendar, IslamicCivilCalendar, IslamicTabularCalendar, IslamicUmalquraCalendar, JapaneseCalendar, PersianCalendar, TaiwanCalendar, ZonedDateTime} from '..';
+import {BuddhistCalendar, CalendarDate, createCalendar, CalendarDateTime, parseDate, CopticCalendar, EthiopicAmeteAlemCalendar, EthiopicCalendar, HebrewCalendar, IndianCalendar, IslamicCivilCalendar, IslamicTabularCalendar, IslamicUmalquraCalendar, JapaneseCalendar, PersianCalendar, TaiwanCalendar, ZonedDateTime} from '..';
+import { compareDate } from '../src/queries';
+import { Custom454Cal } from '@react-spectrum/calendar/stories/RangeCalendar.stories';
 
 describe('CalendarDate manipulation', function () {
   describe('add', function () {
@@ -755,4 +757,14 @@ describe('ZonedDateTime manipulation', function () {
       expect(date.subtract({[`${Unit}`]: 5})).toEqual(Expected);
     });
   });
+
+  describe.only('add retail', () => {
+    it('should add 3 months', () => {
+      let date = new CalendarDate(new Custom454Cal(), 2015, 2, 1);
+
+      expect(date.add({months: 2})).toEqual(new CalendarDate(new Custom454Cal(), 2015, 4, 5));
+    });
+  });
 });
+
+

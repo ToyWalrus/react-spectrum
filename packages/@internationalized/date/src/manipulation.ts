@@ -37,7 +37,11 @@ export function add(date: CalendarDate | CalendarDateTime, duration: DateTimeDur
   for (let i = 0; i < monthsToAdd; i++) {
     let daysInMonth = calendar.getDaysInMonth(mutableDate);
     mutableDate.day += daysInMonth * sign;
-    balanceDay(mutableDate, daysInMonth);
+    if (calendar.balanceDate1) {
+      calendar.balanceDate1(mutableDate);
+    } else {
+      balanceDay(mutableDate, daysInMonth);
+    }
   }  
 
   // mutableDate.month += duration.months || 0;
@@ -117,7 +121,6 @@ function balanceDay(date: Mutable<AnyCalendarDate>, daysInCurrentMonth: number) 
   }
 
   while (date.day > daysInCurrentMonth) {
-    // need to subtract days in the current calendar month...
     date.day -= daysInCurrentMonth;
     date.month++;
     balanceYearMonth(date);

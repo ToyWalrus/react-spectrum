@@ -12,7 +12,8 @@
 
 import {act, fireEvent, pointerMap, render, within} from '@react-spectrum/test-utils-internal';
 import {Calendar, RangeCalendar} from '../';
-import {CalendarDate, GregorianCalendar, today} from '@internationalized/date';
+import {CalendarDate, parseDate, GregorianCalendar, today, createCalendar} from '@internationalized/date';
+import { compareDate } from '@internationalized/date/src/queries';
 import {Provider} from '@react-spectrum/provider';
 import React from 'react';
 import {theme} from '@react-spectrum/theme-default';
@@ -790,4 +791,103 @@ describe('CalendarBase', () => {
       expect(document.activeElement).toBe(selected);
     });
   });
+
+  describe.only('local test', () => {
+    test('should do the thing', () => {
+      const feb = new CalendarDate(new Custom454Cal(), 2015, 2, 1);
+
+      const mar1 = feb.add({months: 1});
+      const apr5 = feb.add({months: 2});
+
+      expect(mar1.day).toBe(1);
+      expect(mar1.month).toBe(3);
+
+      expect(apr5.day).toBe(5);
+      expect(apr5.month).toBe(4);
+    });
+  });
 });
+
+class Custom454Cal   {
+
+  cal454_2015 = [
+    {'start': '2015-02-01', 'end': '2015-02-28', 'weeks': 4},
+    {'start': '2015-03-01', 'end': '2015-04-04', 'weeks': 5},
+    {'start': '2015-04-05', 'end': '2015-05-02', 'weeks': 4},
+
+    {'start': '2015-05-03', 'end': '2015-05-30', 'weeks': 4},
+    {'start': '2015-05-31', 'end': '2015-07-04', 'weeks': 5},
+    {'start': '2015-07-05', 'end': '2015-08-01', 'weeks': 4},
+
+    {'start': '2015-08-02', 'end': '2015-08-29', 'weeks': 4},
+    {'start': '2015-08-30', 'end': '2015-10-03', 'weeks': 5},
+    {'start': '2015-10-04', 'end': '2015-10-31', 'weeks': 4},
+
+    {'start': '2015-11-01', 'end': '2015-11-28', 'weeks': 4},
+    {'start': '2015-11-29', 'end': '2016-01-02', 'weeks': 5},
+    {'start': '2016-01-03', 'end': '2016-01-30', 'weeks': 4}
+  ] ;
+
+  constructor() {
+    this.internalCal = createCalendar('gregory');
+    this.identifier = 'custom-454';
+  }
+  fromJulianDay(jd) {
+    const date = this.internalCal.fromJulianDay(jd);
+    return new CalendarDate(this, date.year, date.month, date.day);
+  }
+  toJulianDay(date) {
+    return this.internalCal.toJulianDay(date);
+  }
+  getFirstDayOfWeek() {
+    return 0;
+  }
+  getStartOfMonth(date) {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToStart = compareDate(date, parseDate(range.start));
+      return date.subtract({days: diffToStart});
+    }
+  }
+  getEndOfMonth(date) {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToEnd = compareDate(date, parseDate(range.end));
+      return date.add({days: 1 - diffToEnd});
+    }
+  }
+  getStartOfYear(date) {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToStart = compareDate(date, parseDate(this.cal454_2015[0].start));
+      return date.subtract({days: diffToStart});
+    }
+  }
+  getEndOfYear(date) {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      const diffToEnd = compareDate(date, parseDate(this.cal454_2015[this.cal454_2015.length - 1].end));
+      return date.add({days: 1 - diffToEnd});
+    }
+  }
+  getDaysInMonth(date) {
+    const range = this.getRangeOfDate(date);
+    if (range) {
+      return range.weeks * 7;
+    }
+    return this.internalCal.getDaysInMonth(date);
+  }
+  
+  getMonthsInYear(date) {
+    return this.internalCal.getMonthsInYear(date);
+  }
+  getYearsInEra(date) {
+    return this.internalCal.getYearsInEra(date);
+  }
+  getEras()  {
+    return this.internalCal.getEras();
+  }
+  getRangeOfDate(date) {
+    return this.cal454_2015.find(r => compareDate(date, parseDate(r.start)) >= 0 && compareDate(date, parseDate(r.end)) <= 0);
+  }
+}
