@@ -237,7 +237,7 @@ class Custom454Cal implements Calendar {
     this.identifier = 'custom-454';
   }
   fromJulianDay(jd: number): CalendarDate {
-    const date = this.internalCal.fromJulianDay(jd + 5);
+    const date = this.internalCal.fromJulianDay(jd);
     return new CalendarDate(this, date.year, date.month, date.day);
   }
   toJulianDay(date: AnyCalendarDate): number {
