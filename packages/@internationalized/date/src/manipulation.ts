@@ -24,13 +24,23 @@ export function add(date: CalendarDate | CalendarDateTime, duration: DateTimeDur
 export function add(date: CalendarDate | CalendarDateTime, duration: DateTimeDuration) {
   let mutableDate: Mutable<AnyCalendarDate | AnyDateTime> = date.copy();
   let days = 'hour' in mutableDate ? addTimeFields(mutableDate, duration) : 0;
+  let calendar = mutableDate.calendar;
 
   addYears(mutableDate, duration.years || 0);
-  if (mutableDate.calendar.balanceYearMonth) {
-    mutableDate.calendar.balanceYearMonth(mutableDate, date);
+  if (calendar.balanceYearMonth) {
+    calendar.balanceYearMonth(mutableDate, date);
   }
 
-  mutableDate.month += duration.months || 0;
+  let sign = Math.sign(duration.months || 0);
+  let monthsToAdd = Math.abs(duration.months || 0);
+  
+  for (let i = 0; i < monthsToAdd; i++) {
+    let daysInMonth = calendar.getDaysInMonth(mutableDate);
+    mutableDate.day += daysInMonth * sign;
+    balanceDay(mutableDate, daysInMonth);
+  }  
+
+  // mutableDate.month += duration.months || 0;
 
   balanceYearMonth(mutableDate);
   constrainMonthDay(mutableDate);
@@ -39,10 +49,10 @@ export function add(date: CalendarDate | CalendarDateTime, duration: DateTimeDur
   mutableDate.day += duration.days || 0;
   mutableDate.day += days;
 
-  balanceDay(mutableDate);
+  balanceDay(mutableDate, calendar.getDaysInMonth(mutableDate));
 
-  if (mutableDate.calendar.balanceDate) {
-    mutableDate.calendar.balanceDate(mutableDate);
+  if (calendar.balanceDate) {
+    calendar.balanceDate(mutableDate);
   }
 
   // Constrain in case adding ended up with a date outside the valid range for the calendar system.
@@ -55,12 +65,12 @@ export function add(date: CalendarDate | CalendarDateTime, duration: DateTimeDur
     mutableDate.day = 1;
   }
 
-  let maxYear = mutableDate.calendar.getYearsInEra(mutableDate);
+  let maxYear = calendar.getYearsInEra(mutableDate);
   if (mutableDate.year > maxYear) {
-    let isInverseEra = mutableDate.calendar.isInverseEra?.(mutableDate);
+    let isInverseEra = calendar.isInverseEra?.(mutableDate);
     mutableDate.year = maxYear;
-    mutableDate.month = isInverseEra ? 1 : mutableDate.calendar.getMonthsInYear(mutableDate);
-    mutableDate.day = isInverseEra ? 1 : mutableDate.calendar.getDaysInMonth(mutableDate);
+    mutableDate.month = isInverseEra ? 1 : calendar.getMonthsInYear(mutableDate);
+    mutableDate.day = isInverseEra ? 1 : calendar.getDaysInMonth(mutableDate);
   }
 
   if (mutableDate.month < 1) {
@@ -68,13 +78,13 @@ export function add(date: CalendarDate | CalendarDateTime, duration: DateTimeDur
     mutableDate.day = 1;
   }
 
-  let maxMonth = mutableDate.calendar.getMonthsInYear(mutableDate);
+  let maxMonth = calendar.getMonthsInYear(mutableDate);
   if (mutableDate.month > maxMonth) {
     mutableDate.month = maxMonth;
-    mutableDate.day = mutableDate.calendar.getDaysInMonth(mutableDate);
+    mutableDate.day = calendar.getDaysInMonth(mutableDate);
   }
 
-  mutableDate.day = Math.max(1, Math.min(mutableDate.calendar.getDaysInMonth(mutableDate), mutableDate.day));
+  mutableDate.day = Math.max(1, Math.min(calendar.getDaysInMonth(mutableDate), mutableDate.day));
   return mutableDate;
 }
 
@@ -99,17 +109,19 @@ function balanceYearMonth(date: Mutable<AnyCalendarDate>) {
   }
 }
 
-function balanceDay(date: Mutable<AnyCalendarDate>) {
+function balanceDay(date: Mutable<AnyCalendarDate>, daysInCurrentMonth: number) {
   while (date.day < 1) {
     date.month--;
     balanceYearMonth(date);
     date.day += date.calendar.getDaysInMonth(date);
   }
 
-  while (date.day > date.calendar.getDaysInMonth(date)) {
-    date.day -= date.calendar.getDaysInMonth(date);
+  while (date.day > daysInCurrentMonth) {
+    // need to subtract days in the current calendar month...
+    date.day -= daysInCurrentMonth;
     date.month++;
     balanceYearMonth(date);
+    daysInCurrentMonth = date.calendar.getDaysInMonth(date);
   }
 }
 

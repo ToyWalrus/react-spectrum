@@ -63,6 +63,7 @@ export function CalendarBase<T extends CalendarState | RangeCalendarState>(props
   let calendars: JSX.Element[] = [];
   for (let i = 0; i < visibleMonths; i++) {
     let d = currentMonth.add({months: i});
+    console.log(`current month ${currentMonth.month} add ${i}:`, d.toString());
     titles.push(
       <div key={i} className={classNames(styles, 'spectrum-Calendar-monthHeader')}>
         {i === 0 &&

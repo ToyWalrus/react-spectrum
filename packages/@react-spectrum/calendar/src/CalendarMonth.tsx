@@ -42,6 +42,7 @@ export function CalendarMonth(props: CalendarMonthProps) {
 
   let {locale} = useLocale();
   let weeksInMonth = getWeeksInMonth(startDate, locale);
+  console.log(`weeks in month ${props.startDate.month}:`, weeksInMonth);
 
   return (
     <table
